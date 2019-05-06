@@ -1,0 +1,95 @@
+<?php
+	// include Database connection file
+	include("../../../dbconnect.php");
+
+	// Design initial table header
+	$data = '<table class="table table-mc-red pmd-table">
+                <thead>
+                    <tr>
+                        <th>Car Name</th>
+                        <th>Max Capacity</th>
+                        <th>Kilometer/Litre</th>
+                        <th>Aircondition</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>';
+	
+$query = "SELECT carfeatures.car_id, capacity, aircondition, kmpl, carname FROM carfeatures INNER JOIN cars ON carfeatures.car_id = cars.car_id ORDER BY carname ASC LIMIT 0, 10";
+
+$result= $conn->query($query);
+    //exit(mysql_error());
+    $result->setFetchMode(PDO::FETCH_ASSOC);
+    $numrows =$result->rowCount();
+    //print_r($numrows);
+//for pagination count page
+    $queryCountRows = "SELECT * from carfeatures";
+    $queryCountResult = $conn->query($queryCountRows);
+    $queryCountResult->setFetchMode(PDO::FETCH_ASSOC);
+    $countnumrows =$queryCountResult->rowCount();
+
+    // if query results contains rows then featch those rows
+    if($numrows > 0)
+    {
+    	$number = 1;
+    	while($row = $result->fetch(PDO::FETCH_ASSOC))
+    	{
+			$data .= '<tr class="eachrow">
+                <td data-title="Guest House">'.$row['carname'].'</td>
+                
+                <td data-title="Guest House">'.$row['capacity'].'</td>
+                <td data-title="Guest House">'.$row['kmpl'].'</td>
+                <td data-title="Guest House">'.$row['aircondition'].'</td>
+                
+                <td class="pmd-table-row-action">
+                    <a href="car-features-edit.php?id='.$row['car_id'].'" class="btn pmd-btn-fab pmd-btn-flat pmd-ripple-effect btn-default btn-sm">
+                        <i class="material-icons md-dark pmd-sm">edit</i>
+                    </a>
+                    <a onclick="DeleteCarfeatureDetails('.$row['car_id'].')" class="btn pmd-btn-fab pmd-btn-flat pmd-ripple-effect btn-default btn-sm">
+                        <i class="material-icons md-dark pmd-sm">delete</i>
+                    </a>                    
+                </td>
+    		</tr>';
+    		
+    		
+    		$number++;
+    	}
+    }
+    else
+    {
+    	// records now found
+    	$data .= '<tr class="eachrow"><td colspan="6">Records not found!</td></tr>';
+    }
+    $data .= '</tbody></table></div>';
+// pagination start
+$totalpage =$countnumrows/10;
+$totalpage =ceil($totalpage);
+$currentpage    = (isset($_GET['page']) ? $_GET['page'] : 1);
+$firstpage      = 1;
+$lastpage       = $totalpage;
+$loopcounter = ( ( ( $currentpage + 2 ) <= $lastpage ) ? ( $currentpage + 2 ) : $lastpage );
+$startCounter =  ( ( ( $currentpage - 2 ) >= 3 ) ? ( $currentpage - 2 ) : 1 );
+
+if($totalpage > 1)
+{
+	$data .= '<div class="pagination-container wow zoomIn mar-b-1x" data-wow-duration="0.5s">';
+	$data .= '<ul class="pagination">';
+	$data .= '<li class="pagination-item--wide first"> <a class="pagination-link--wide first" href="barcode-manage.php?page=1">First</a> </li>';
+	for($i = $startCounter; $i <= $loopcounter; $i++)
+	{
+		if($i== 1){
+			$defaultActive = "is-active";
+		}else{
+			$defaultActive = "";
+		}
+		$data .= '<li class="pagination-item '.$defaultActive.'"> <a class="pagination-link" href="car-features-manage.php?page='.$i.'">'.$i." ".'</a> </li>';
+	}
+	$data .= '<li class="pagination-item--wide last"> <a class="pagination-link--wide last" href="car-features-manage.php?page='.$totalpage.'">Last</a> </li>';
+	$data  .= '</ul>';
+	$data .= '</div>';
+}
+$data .= '</div>';
+echo $data ;
+
+
+    ?>
